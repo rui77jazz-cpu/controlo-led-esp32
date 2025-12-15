@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controlo LED ESP32</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .status {
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.on {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status.off {
+            background: #f44336;
+            color: white;
+        }
+        
+        .led-visual {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 30px auto;
+            transition: all 0.3s ease;
+            border: 5px solid #ddd;
+        }
+        
+        .led-visual.on {
+            background: #ffeb3b;
+            box-shadow: 0 0 30px #ffeb3b;
+            border-color: #fdd835;
+        }
+        
+        .led-visual.off {
+            background: #666;
+            box-shadow: none;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-on {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-on:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-off {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-off:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .connection {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .connection.connected {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Controlo ESP32</h1>
+        <div class="connection" id="connection">A conectar...</div>
+        
+        <div class="led-visual off" id="ledVisual"></div>
+        
+        <div class="status off" id="status">LED DESLIGADO</div>
+        
+        <button class="btn-on" onclick="ligarLED()">⚡ LIGAR</button>
+        <button class="btn-off" onclick="desligarLED()">🔴 DESLIGAR</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDRGb3eQmZ-RpcguRzBtFmkRIjxsrGpHqk",
+            authDomain: "controlo-led-esp32.firebaseapp.com",
+            databaseURL: "https://controlo-led-esp32-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "controlo-led-esp32",
+            storageBucket: "controlo-led-esp32.firebasestorage.app",
+            messagingSenderId: "1027938207754",
+            appId: "1:1027938207754:web:6d6299671f8fdf49cd77f3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const ledRef = ref(database, 'led/estado');
+
+        onValue(ledRef, (snapshot) => {
+            const estado = snapshot.val();
+            const statusDiv = document.getElementById('status');
+            const ledVisual = document.getElementById('ledVisual');
+            const connection = document.getElementById('connection');
+            
+            connection.textContent = '✅ Conectado';
+            connection.classList.add('connected');
+            
+            if (estado === 1) {
+                statusDiv.textContent = 'LED LIGADO';
+                statusDiv.className = 'status on';
+                ledVisual.className = 'led-visual on';
+            } else {
+                statusDiv.textContent = 'LED DESLIGADO';
+                statusDiv.className = 'status off';
+                ledVisual.className = 'led-visual off';
+            }
+        });
+
+        window.ligarLED = function() {
+            set(ledRef, 1);
+        };
+
+        window.desligarLED = function() {
+            set(ledRef, 0);
+        };
+    </script>
+</body>
+</html>
